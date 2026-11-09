@@ -27,7 +27,7 @@ done
 # Read rows, desktop count and the flag for this source from the plugin's
 # bar entry (flat keys, as stored by the host).
 settings=$(jq -r --arg id "$ID" --arg via "$via" '([.. | objects | select(.id? == $id)][0] // {})
-  | "\(.rows // 2) \(.desktops // 8) \(if $via == "gesture" then (.gestures // true) else (.keybinds // true) end)"' \
+  | "\(.rows // 2) \(.desktops // 8) \(if $via == "gesture" then .gestures != false else .keybinds != false end)"' \
   "$SHELL_JSON" 2>/dev/null) || exit 0
 [ -n "$settings" ] || exit 0
 

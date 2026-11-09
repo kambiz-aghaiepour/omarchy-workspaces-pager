@@ -1,8 +1,11 @@
 #!/bin/bash
-# Move windows off workspaces above the configured count, then refocus if the
-# active workspace was removed. Used when the pager's workspace count is
-# lowered.
+# Move windows off workspaces above the configured count, then restore the
+# view. Used when the pager's workspace count is lowered.
 # Usage: pager-migrate <count>
+#
+# Omarchy's Hyprland lua bridge wraps every dispatch string, so window moves
+# go through hl.dsp: focus the window, move the now-active window with
+# follow = false, and put the view back at the end.
 
 set -u
 
@@ -12,20 +15,29 @@ case $count in
 esac
 (( count < 1 )) && exit 1
 
-# Collect addresses on workspaces above the count, highest workspace first so
-# windows land together on the last remaining one.
+prev_active=$(hyprctl activeworkspace -j 2>/dev/null | jq -r '.id')
+case $prev_active in
+  ''|*[!0-9]*) prev_active= ;;
+esac
+
+# Windows on workspaces above the count, highest first.
 clients=$(hyprctl clients -j 2>/dev/null | jq -r --argjson n "$count" '
   . | sort_by(-.workspace.id)[]
   | select(.workspace.id > $n) | .address' 2>/dev/null) || clients=
 
 for addr in $clients; do
-  hyprctl dispatch "movetoworkspacesilent $count,address:$addr" >/dev/null 2>&1
+  hyprctl dispatch "hl.dsp.focus({ window = \"address:$addr\" })" >/dev/null 2>&1
+  hyprctl dispatch "hl.dsp.window.move({ workspace = $count, follow = false })" >/dev/null 2>&1
 done
 
-cur=$(hyprctl activeworkspace -j 2>/dev/null | jq -r '.id')
-case $cur in
-  ''|*[!0-9]*) exit 0 ;;
+# Put the view back on the pre-migration workspace when it still exists,
+# otherwise on the last remaining one.
+target=$prev_active
+case $target in
+  ''|*[!0-9]*) target=$count ;;
 esac
-(( cur > count )) && hyprctl dispatch "workspace $count" >/dev/null 2>&1
+(( target > count )) && target=$count
+(( target < 1 )) && target=$count
+hyprctl dispatch "hl.dsp.focus({ workspace = $target })" >/dev/null 2>&1
 
 exit 0
