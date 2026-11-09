@@ -21,7 +21,7 @@ are plain scripts driven by snippets you add to your Hyprland config once.
 ## Install
 
 ```sh
-git clone https://github.com/<owner>/omarchy-workspaces-pager.git
+git clone git@github.com:kambiz-aghaiepour/omarchy-workspaces-pager.git
 cp -r omarchy-workspaces-pager ~/.config/omarchy/plugins/io.github.kambiz.workspaces-pager
 ```
 
