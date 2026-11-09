@@ -24,8 +24,9 @@ while [ $# -gt 0 ]; do
 done
 [ -n "$via" ] && [ -n "$dir" ] || exit 1
 
-# Read rows, desktop count and the flag for this source from shell.json.
-settings=$(jq -r --arg id "$ID" '([.. | objects | select(.id? == $id)][0].settings // {})
+# Read rows, desktop count and the flag for this source from the plugin's
+# bar entry (flat keys, as stored by the host).
+settings=$(jq -r --arg id "$ID" '([.. | objects | select(.id? == $id)][0] // {})
   | "\(.rows // 2) \(.desktops // 8) \(if $via == "gesture" then (.gestures // true) else (.keybinds // true) end)"' \
   "$SHELL_JSON" 2>/dev/null) || exit 0
 [ -n "$settings" ] || exit 0
