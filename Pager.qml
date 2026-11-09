@@ -135,4 +135,17 @@ BarWidget {
       if (name === "workspacev2" || name === "fullscreen") Hyprland.refreshMonitors()
     }
   }
+
+  // Remote control: omarchy-shell io.github.kambiz.workspaces-pager <method> [arg]
+  ShellIpc {
+    target: "io.github.kambiz.workspaces-pager"
+    function open(): void { root.openPanel() }
+    function close(): void { root.closePanel() }
+    function toggle(): void { root.togglePanel() }
+    function applySettings(json: string): void { root.saveSettings(JSON.parse(json)) }
+    function panelStatus(): string {
+      var p = panelLoader.item
+      return p && "status" in p ? p.status() : "no-panel"
+    }
+  }
 }

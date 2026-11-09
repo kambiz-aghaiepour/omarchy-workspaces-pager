@@ -14,6 +14,7 @@ Panel {
 
   property var anchorItem: null
   property var hostWidget: null
+  readonly property var barIdentity: hostWidget ? hostWidget : root
 
   readonly property var cfg: hostWidget ? (hostWidget.settings || {}) : ({})
   readonly property int rows: {
@@ -41,6 +42,14 @@ Panel {
     else root.open()
   }
 
+  function status() { return root.opened ? "open" : "closed" }
+
+  function switchPanel(direction) {
+    if (root.bar && typeof root.bar.switchPanelFrom === "function")
+      return root.bar.switchPanelFrom(root.barIdentity, direction)
+    return false
+  }
+
   // Move windows off workspaces above the new count, then refocus if the
   // active workspace was removed. The helper path is resolved from this
   // file's location inside the installed plugin.
@@ -64,66 +73,86 @@ Panel {
     }
   }
 
-    implicitWidth: content.implicitWidth + 2 * Style.space(14)
-  implicitHeight: content.implicitHeight + 2 * Style.space(12)
+  KeyboardPanel {
+    id: panel
+    anchorItem: root.anchorItem
+    owner: root.barIdentity
+    bar: root.bar
+    open: root.opened
+    centerOnBar: false
+    focusTarget: panel.loadedContent
+    contentWidth: panel.fittedContentWidth(Style.space(340))
+    contentHeight: panel.fittedContentHeight(panel.loadedContentHeight)
 
-  Column {
-    id: content
-    anchors.centerIn: parent
-    spacing: Style.space(10)
-    width: Style.space(252)
+    content: PanelKeyCatcher {
+      id: keyCatcher
+      anchors.fill: parent
+      implicitHeight: contentColumn.implicitHeight
+      onCloseRequested: root.close()
+      onTabRequested: function(direction) { root.switchPanel(direction) }
 
-    Text {
-      textFormat: Text.PlainText
-      text: "Workspaces Pager"
-      color: root.fg
-      font.family: Style.font.family
-      font.pixelSize: Style.font.subtitle
-      font.bold: true
-    }
+      Column {
+        id: contentColumn
+        width: parent.width
+        spacing: Style.space(10)
 
-    Toggle {
-      width: parent.width
-      label: "Two-row grid"
-      description: "Split the workspaces across two rows"
-      checked: root.rows === 2
-      onClicked: root.save({ rows: root.rows === 2 ? 1 : 2 })
-    }
+        Item { width: 1; height: Style.space(2) }
 
-    Toggle {
-      width: parent.width
-      label: "Ctrl+Alt+arrow navigation"
-      description: "Grid navigation keys (bindings snippet)"
-      checked: root.keybinds
-      onClicked: root.save({ keybinds: !root.keybinds })
-    }
+        Text {
+          textFormat: Text.PlainText
+          text: "Workspaces Pager"
+          color: root.fg
+          font.family: Style.font.family
+          font.pixelSize: Style.font.subtitle
+          font.bold: true
+        }
 
-    Toggle {
-      width: parent.width
-      label: "Three-finger swipe navigation"
-      description: "Swipe across the grid (gestures snippet)"
-      checked: root.gestures
-      onClicked: root.save({ gestures: !root.gestures })
-    }
+        Toggle {
+          width: parent.width
+          label: "Two-row grid"
+          description: "Split the workspaces across two rows"
+          checked: root.rows === 2
+          onClicked: root.save({ rows: root.rows === 2 ? 1 : 2 })
+        }
 
-    NumberField {
-      label: "Workspaces"
-      width: parent.width
-      from: 1
-      to: 20
-      stepSize: 1
-      value: root.desktopCount
-      onModified: function(value) { root.applyCount(value) }
-    }
+        Toggle {
+          width: parent.width
+          label: "Ctrl+Alt+arrow navigation"
+          description: "Grid navigation keys (bindings snippet)"
+          checked: root.keybinds
+          onClicked: root.save({ keybinds: !root.keybinds })
+        }
 
-    Text {
-      textFormat: Text.PlainText
-      width: parent.width
-      text: "Lowering the count moves windows on removed workspaces to the last remaining one."
-      wrapMode: Text.WordWrap
-      color: Qt.alpha(root.fg, 0.55)
-      font.family: Style.font.family
-      font.pixelSize: Style.font.caption
+        Toggle {
+          width: parent.width
+          label: "Three-finger swipe navigation"
+          description: "Swipe across the grid (gestures snippet)"
+          checked: root.gestures
+          onClicked: root.save({ gestures: !root.gestures })
+        }
+
+        NumberField {
+          label: "Workspaces"
+          width: parent.width
+          from: 1
+          to: 20
+          stepSize: 1
+          value: root.desktopCount
+          onModified: function(value) { root.applyCount(value) }
+        }
+
+        Text {
+          textFormat: Text.PlainText
+          width: parent.width
+          text: "Lowering the count moves windows on removed workspaces to the last remaining one."
+          wrapMode: Text.WordWrap
+          color: Qt.alpha(root.fg, 0.55)
+          font.family: Style.font.family
+          font.pixelSize: Style.font.caption
+        }
+
+        Item { width: 1; height: Style.space(2) }
+      }
     }
   }
 }

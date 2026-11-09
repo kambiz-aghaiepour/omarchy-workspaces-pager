@@ -69,6 +69,20 @@ Lowering `desktops` runs `scripts/pager-migrate`: windows on workspaces above
 the new count move to workspace `count`, and the focused view follows if it
 was on a removed workspace.
 
+## IPC
+
+The widget registers a Quickshell IPC target for scripting and testing
+(requires a shell restart to register after install):
+
+```sh
+qs -p /usr/share/omarchy/shell ipc call io.github.kambiz.workspaces-pager toggle
+qs -p /usr/share/omarchy/shell ipc call io.github.kambiz.workspaces-pager panelStatus
+qs -p /usr/share/omarchy/shell ipc call io.github.kambiz.workspaces-pager applySettings '{"rows":1}'
+```
+
+`open`, `close`, `toggle`, `panelStatus`, and `applySettings` (a JSON object
+merged into the widget's entry, same path the panel uses).
+
 ## Files
 
 ```
