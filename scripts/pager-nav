@@ -1,0 +1,68 @@
+#!/bin/bash
+# Move between virtual desktops laid out as a rows x columns grid:
+#   2 rows of N workspaces: 1..cols on top, the rest below
+#   1 row: a single line of N workspaces
+# Usage: pager-nav --via keybind|gesture left|right|up|down
+#
+# Geometry and the per-source enable flags come from this plugin's entry in
+# ~/.config/omarchy/shell.json, so the panel toggles take effect without
+# touching Hyprland. Edges are hard stops (no wraparound), per-row for
+# left/right and per-column for up/down.
+
+set -u
+
+ID=io.github.kambiz.workspaces-pager
+SHELL_JSON=$HOME/.config/omarchy/shell.json
+
+via=; dir=
+while [ $# -gt 0 ]; do
+  case $1 in
+    --via) via=${2:-}; shift 2 ;;
+    left|right|up|down) dir=$1; shift ;;
+    *) shift ;;
+  esac
+done
+[ -n "$via" ] && [ -n "$dir" ] || exit 1
+
+# Read rows, desktop count and the flag for this source from shell.json.
+settings=$(jq -r --arg id "$ID" '([.. | objects | select(.id? == $id)][0].settings // {})
+  | "\(.rows // 2) \(.desktops // 8) \(if $via == "gesture" then (.gestures // true) else (.keybinds // true) end)"' \
+  "$SHELL_JSON" 2>/dev/null) || exit 0
+[ -n "$settings" ] || exit 0
+
+rows=$(echo "$settings" | cut -d' ' -f1)
+desktops=$(echo "$settings" | cut -d' ' -f2)
+enabled=$(echo "$settings" | cut -d' ' -f3)
+[ "$enabled" = true ] || exit 0
+
+cur=$(hyprctl activeworkspace -j 2>/dev/null | jq -r '.id')
+case $cur in
+  ''|*[!0-9]*) exit 0 ;;   # special/named workspace: do nothing
+esac
+
+# Only the configured 1..N grid participates.
+(( cur < 1 || cur > desktops )) && exit 0
+
+cols=$(( (desktops + rows - 1) / rows ))
+row=$(( (cur - 1) / cols ))
+col=$(( (cur - 1) % cols ))
+target=
+
+case $dir in
+  left)  (( col > 0 )) && target=$(( cur - 1 )) ;;
+  right) (( col < cols - 1 )) && (( cur < desktops )) && target=$(( cur + 1 )) ;;
+  up)    (( row > 0 )) && target=$(( cur - cols )) ;;
+  down)  if (( row < rows - 1 )); then t=$(( cur + cols )); (( t <= desktops )) && target=$t; fi ;;
+  *) exit 1 ;;
+esac
+[ -n "$target" ] || exit 0
+
+# Slide animation axis follows the movement: horizontal slide for left/right,
+# vertical slide for up/down (Hyprland has no direction-aware single style).
+case $dir in
+  left|right) style=slide ;;
+  up|down)    style=slidevert ;;
+esac
+hyprctl eval "hl.animation({ leaf = 'workspaces', enabled = true, speed = 8, bezier = 'default', style = '$style' })" >/dev/null 2>&1
+
+hyprctl dispatch "hl.dsp.focus({ workspace = $target })" >/dev/null 2>&1

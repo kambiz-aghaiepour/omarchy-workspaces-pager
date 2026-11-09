@@ -1,0 +1,21 @@
+#!/bin/bash
+# Validate the plugin: manifest JSON, shell syntax, and the host validator
+# when running on Omarchy.
+set -e
+cd "$(dirname "$0")/.."
+
+jq empty manifest.json
+echo "manifest: ok"
+
+for script in scripts/pager-nav scripts/pager-migrate; do
+  bash -n "$script"
+done
+echo "scripts: ok"
+
+if command -v omarchy >/dev/null 2>&1; then
+  omarchy plugin validate .
+else
+  echo "omarchy: not found, skipped host validation"
+fi
+
+echo "all checks passed"

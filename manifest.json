@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "id": "io.github.kambiz.workspaces-pager",
+  "name": "Workspaces Pager",
+  "version": "1.0.0",
+  "author": "kambiz",
+  "license": "MIT",
+  "description": "Grid workspace pager with a control panel: 1-2 rows, live workspace count (lowering moves windows to the last remaining workspace), and toggles for Ctrl+Alt+arrow and three-finger-swipe navigation.",
+  "kinds": ["bar-widget"],
+  "entryPoints": {
+    "barWidget": "Pager.qml"
+  },
+  "barWidget": {
+    "displayName": "Workspaces Pager",
+    "description": "Row-grid desktop pager; right-click opens the control panel",
+    "category": "Compositor",
+    "allowMultiple": false,
+    "defaultSection": "left",
+    "defaults": {
+      "rows": 2,
+      "desktops": 8,
+      "keybinds": true,
+      "gestures": true
+    },
+    "schema": [
+      {
+        "key": "rows",
+        "type": "integer",
+        "label": "Rows",
+        "min": 1,
+        "max": 2,
+        "step": 1,
+        "defaultValue": 2
+      },
+      {
+        "key": "desktops",
+        "type": "integer",
+        "label": "Workspaces",
+        "min": 1,
+        "max": 20,
+        "step": 1,
+        "defaultValue": 8
+      },
+      {
+        "key": "keybinds",
+        "type": "boolean",
+        "label": "Ctrl+Alt+arrow navigation",
+        "defaultValue": true
+      },
+      {
+        "key": "gestures",
+        "type": "boolean",
+        "label": "Three-finger swipe navigation",
+        "defaultValue": true
+      }
+    ]
+  }
+}

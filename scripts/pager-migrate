@@ -1,0 +1,31 @@
+#!/bin/bash
+# Move windows off workspaces above the configured count, then refocus if the
+# active workspace was removed. Used when the pager's workspace count is
+# lowered.
+# Usage: pager-migrate <count>
+
+set -u
+
+count=${1:?usage: pager-migrate <count>}
+case $count in
+  ''|*[!0-9]*) exit 1 ;;
+esac
+(( count < 1 )) && exit 1
+
+# Collect addresses on workspaces above the count, highest workspace first so
+# windows land together on the last remaining one.
+clients=$(hyprctl clients -j 2>/dev/null | jq -r --argjson n "$count" '
+  . | sort_by(-.workspace.id)[]
+  | select(.workspace.id > $n) | .address' 2>/dev/null) || clients=
+
+for addr in $clients; do
+  hyprctl dispatch "movetoworkspacesilent $count,address:$addr" >/dev/null 2>&1
+done
+
+cur=$(hyprctl activeworkspace -j 2>/dev/null | jq -r '.id')
+case $cur in
+  ''|*[!0-9]*) exit 0 ;;
+esac
+(( cur > count )) && hyprctl dispatch "workspace $count" >/dev/null 2>&1
+
+exit 0
