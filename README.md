@@ -69,6 +69,12 @@ Lowering `desktops` runs `scripts/pager-migrate`: windows on workspaces above
 the new count move to workspace `count`, and the focused view follows if it
 was on a removed workspace.
 
+## Troubleshooting
+
+Editing plugin QML while the shell runs hot-reloads the widget, but the
+control panel's popup layer does not survive it — if the panel stops
+appearing, run `omarchy-restart-shell` (a login also starts fresh).
+
 ## IPC
 
 The widget registers a Quickshell IPC target for scripting and testing
