@@ -18,6 +18,17 @@ control panel for the layout and the navigation inputs.
 The widget is a bar-widget plugin for Omarchy's shell; the navigation helpers
 are plain scripts driven by snippets you add to your Hyprland config once.
 
+## Screenshots
+
+Control panel with the two-row layout — the pager runs 4 + 2 above, 4 + 4 at
+eight workspaces:
+
+![Control panel, two-row layout](screenshots/panel-two-rows.png)
+
+The same panel with two-row off — the grid and the toggle update live:
+
+![Control panel, single-row layout](screenshots/panel-one-row.png)
+
 ## Install
 
 ```sh
