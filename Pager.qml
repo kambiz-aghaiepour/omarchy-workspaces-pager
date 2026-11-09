@@ -61,6 +61,12 @@ BarWidget {
   function closePanel() { if (panelLoader.item) panelLoader.item.close() }
   function togglePanel() { if (panelLoader.item) panelLoader.item.toggle() }
 
+  // Popout contract: the panel's dismissal surfaces call these on the owner
+  // widget; routing through the controller keeps the panel's open binding
+  // alive (a direct KeyboardPanel.open write would break it).
+  function open() { openPanel() }
+  function close() { closePanel() }
+
   function injectPanel() {
     var target = panelLoader.item
     if (!target) return
