@@ -31,13 +31,31 @@ BarWidget {
   }
   readonly property int columns: Math.ceil(desktops / rows)
 
+  // Resolve the monitor that hosts this bar widget. On a multi-monitor setup
+  // each bar owns its own pager state; fall back to focus only while the
+  // window/screen binding is not available yet.
+  readonly property var monitor: {
+    var win = root.QsWindow.window
+    var screen = win ? win.screen : null
+    return screen ? Hyprland.monitorFor(screen) : Hyprland.focusedMonitor
+  }
+  readonly property string monitorName: root.monitor ? root.monitor.name : ""
   readonly property int activeId: {
-    var ws = Hyprland.focusedMonitor ? Hyprland.focusedMonitor.activeWorkspace : null
+    var ws = root.monitor ? root.monitor.activeWorkspace : null
     return ws ? ws.id : -1
   }
 
+  // Omarchy assigns each monitor a 10-workspace band (11..20, 21..30, ...).
+  // The pager always draws slots 1..desktops, so translate this monitor's
+  // active workspace into its band's local slot before highlighting or clicking.
+  readonly property int activeSlot: activeId < 1 ? -1 : ((activeId - 1) % 10) + 1
+  readonly property int workspaceBase: activeId >= 1 ? activeId - activeSlot : 0
+
   function focusWorkspace(id) {
-    Hyprland.dispatch("workspace " + id)
+    // A click on another monitor's bar must focus that monitor first; a bare
+    // workspace dispatch would create the slot on the focused monitor.
+    if (root.monitorName) Hyprland.dispatch("focusmonitor " + root.monitorName)
+    Hyprland.dispatch("workspace " + (root.workspaceBase + id))
   }
 
   // ---- Settings persistence (same wiring as Omarchy's clock).
@@ -97,7 +115,7 @@ BarWidget {
 
     required property int index
     readonly property int desktopId: index + 1
-    readonly property bool active: root.activeId === desktopId
+    readonly property bool active: root.activeSlot === desktopId
 
     Layout.preferredWidth: root.barSize * 1.15 / (root.rows === 2 ? 1.45 : 1)
     Layout.preferredHeight: (root.barSize - 6) / root.rows
@@ -132,13 +150,15 @@ BarWidget {
     }
   }
 
-  // Keep the highlight exact: the focused monitor's workspace is the truth,
-  // and switch events must trigger a re-read of every monitor's state.
+  // Keep every pager exact: workspace switches, monitor moves/renumbering,
+  // and fullscreen events trigger a re-read of each monitor's state.
   Connections {
     target: Hyprland
     function onRawEvent(event) {
       var name = event ? String(event.name) : ""
-      if (name === "workspacev2" || name === "fullscreen") Hyprland.refreshMonitors()
+      if (name === "workspacev2" || name === "fullscreen"
+          || name === "moveworkspacev2" || name === "changeworkspaceid")
+        Hyprland.refreshMonitors()
     }
   }
 

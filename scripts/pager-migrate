@@ -20,23 +20,31 @@ case $prev_active in
   ''|*[!0-9]*) prev_active= ;;
 esac
 
-# Windows on workspaces above the count, highest first.
+# Windows above the count in each 10-workspace monitor band go to that
+# band's last remaining slot (11..20, 21..30, ...).
 clients=$(hyprctl clients -j 2>/dev/null | jq -r --argjson n "$count" '
-  . | sort_by(-.workspace.id)[]
-  | select(.workspace.id > $n) | .address' 2>/dev/null) || clients=
+  .[] | select((.workspace.id | type) == "number" and .workspace.id > 0) |
+  (.workspace.id - 1) as $z |
+  (($z / 10 | floor) * 10) as $base |
+  (($z % 10) + 1) as $slot |
+  select($slot > $n) |
+  "\(.address) \($base + $n)"' 2>/dev/null) || clients=
 
-for addr in $clients; do
+while read -r addr target; do
+  [ -n "$addr" ] || continue
   hyprctl dispatch "hl.dsp.focus({ window = \"address:$addr\" })" >/dev/null 2>&1
-  hyprctl dispatch "hl.dsp.window.move({ workspace = $count, follow = false })" >/dev/null 2>&1
-done
+  hyprctl dispatch "hl.dsp.window.move({ workspace = $target, follow = false })" >/dev/null 2>&1
+done <<< "$clients"
 
-# Put the view back on the pre-migration workspace when it still exists,
-# otherwise on the last remaining one.
-target=$prev_active
-case $target in
-  ''|*[!0-9]*) target=$count ;;
-esac
-(( target > count )) && target=$count
+# Put the view back on the pre-migration workspace when it still exists;
+# otherwise focus the last remaining slot in the same monitor band.
+if [[ $prev_active =~ ^[0-9]+$ ]]; then
+  slot=$(( (prev_active - 1) % 10 + 1 ))
+  base=$(( prev_active - slot ))
+  if (( slot > count )); then target=$(( base + count )); else target=$prev_active; fi
+else
+  target=$count
+fi
 (( target < 1 )) && target=$count
 hyprctl dispatch "hl.dsp.focus({ workspace = $target })" >/dev/null 2>&1
 

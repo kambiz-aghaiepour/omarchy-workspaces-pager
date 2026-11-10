@@ -15,6 +15,13 @@ control panel for the layout and the navigation inputs.
   with hard stops at the edges (no wraparound); swipes follow the content.
   Each input has its own toggle in the panel.
 
+Omarchy's per-monitor workspace bands are respected: each bar resolves its own
+monitor, and a workspace in `11..20`, `21..30`, etc. maps to pager slots `1..N`.
+Multi-monitor ids therefore neither overwrite the grid nor break the local
+current-workspace highlight, and clicking another monitor's pager focuses that
+monitor before switching. Single-monitor installs using `1..10` keep the same
+behavior.
+
 The widget is a bar-widget plugin for Omarchy's shell; the navigation helpers
 are plain scripts driven by snippets you add to your Hyprland config once.
 

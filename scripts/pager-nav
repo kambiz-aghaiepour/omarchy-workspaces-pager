@@ -41,19 +41,25 @@ case $cur in
   ''|*[!0-9]*) exit 0 ;;   # special/named workspace: do nothing
 esac
 
+# Omarchy assigns each monitor a 10-workspace band (11..20, 21..30, ...).
+# Translate the active workspace to the band's local slot, do the grid math
+# on 1..desktops, then dispatch back into the same band.
+slot=$(( (cur - 1) % 10 + 1 ))
+base=$(( cur - slot ))
+
 # Only the configured 1..N grid participates.
-(( cur < 1 || cur > desktops )) && exit 0
+(( slot < 1 || slot > desktops )) && exit 0
 
 cols=$(( (desktops + rows - 1) / rows ))
-row=$(( (cur - 1) / cols ))
-col=$(( (cur - 1) % cols ))
+row=$(( (slot - 1) / cols ))
+col=$(( (slot - 1) % cols ))
 target=
 
 case $dir in
-  left)  (( col > 0 )) && target=$(( cur - 1 )) ;;
-  right) (( col < cols - 1 )) && (( cur < desktops )) && target=$(( cur + 1 )) ;;
-  up)    (( row > 0 )) && target=$(( cur - cols )) ;;
-  down)  if (( row < rows - 1 )); then t=$(( cur + cols )); (( t <= desktops )) && target=$t; fi ;;
+  left)  (( col > 0 )) && target=$(( base + slot - 1 )) ;;
+  right) (( col < cols - 1 )) && (( slot < desktops )) && target=$(( base + slot + 1 )) ;;
+  up)    (( row > 0 )) && target=$(( base + slot - cols )) ;;
+  down)  if (( row < rows - 1 )); then t=$(( slot + cols )); (( t <= desktops )) && target=$(( base + t )); fi ;;
   *) exit 1 ;;
 esac
 [ -n "$target" ] || exit 0
