@@ -14,7 +14,10 @@ control panel for the layout and the navigation inputs.
 - **Navigation.** `Ctrl+Alt+<arrow>` and three-finger swipes walk the grid
   with hard stops at the edges (no wraparound); swipes follow the content.
   Left-clicking a box focuses that workspace when the option is enabled.
-  Each input has its own toggle in the panel.
+  Click transitions choose the slide axis from the grid: horizontal within a
+  row, vertical within a column, and the dominant axis for diagonal moves
+  (Hyprland has no two-axis workspace animation). Each input has its own
+  toggle in the panel.
 
 Omarchy's per-monitor workspace bands are respected: each bar resolves its own
 monitor, and a workspace in `11..20`, `21..30`, etc. maps to pager slots `1..N`.

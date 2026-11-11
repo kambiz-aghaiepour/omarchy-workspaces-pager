@@ -53,12 +53,37 @@ BarWidget {
   readonly property int activeSlot: activeId < 1 ? -1 : ((activeId - 1) % 10) + 1
   readonly property int workspaceBase: activeId >= 1 ? activeId - activeSlot : 0
 
+  function clickAnimationStyle(target) {
+    var current = root.activeSlot
+    if (current < 1 || target < 1 || current === target) return "slide"
+
+    var columns = root.columns
+    var currentRow = Math.floor((current - 1) / columns)
+    var currentColumn = (current - 1) % columns
+    var targetRow = Math.floor((target - 1) / columns)
+    var targetColumn = (target - 1) % columns
+    var rowDelta = targetRow - currentRow
+    var columnDelta = targetColumn - currentColumn
+
+    if (rowDelta === 0) return columnDelta < 0 ? "slide left" : "slide right"
+    if (columnDelta === 0) return rowDelta < 0 ? "slidevert top" : "slidevert bottom"
+
+    // Hyprland animates workspaces on one axis only; use the larger component.
+    if (Math.abs(rowDelta) > Math.abs(columnDelta))
+      return rowDelta < 0 ? "slidevert top" : "slidevert bottom"
+    return columnDelta < 0 ? "slide left" : "slide right"
+  }
+
   function focusWorkspace(id) {
+    var style = clickAnimationStyle(id)
+    var expression = "hl.animation({ leaf = 'workspaces', enabled = true, speed = 8, bezier = 'default', style = '"
+      + style + "' })\n"
     // A click on another monitor's bar must focus that monitor first; a bare
     // workspace dispatch would create the slot on the focused monitor.
     if (root.monitorName)
-      Hyprland.dispatch('hl.dsp.focus({ monitor = "' + root.monitorName + '" })')
-    Hyprland.dispatch('hl.dsp.focus({ workspace = "' + (root.workspaceBase + id) + '" })')
+      expression += "hl.dispatch(hl.dsp.focus({ monitor = \"" + root.monitorName + "\" }))\n"
+    expression += "hl.dispatch(hl.dsp.focus({ workspace = \"" + (root.workspaceBase + id) + "\" }))"
+    if (root.bar) root.bar.run("hyprctl eval " + Util.shellQuote(expression))
   }
 
   // ---- Settings persistence (same wiring as Omarchy's clock).
