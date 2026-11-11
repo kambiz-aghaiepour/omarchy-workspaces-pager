@@ -17,6 +17,7 @@ import qs.Ui
 //   desktops - how many virtual desktops the pager shows
 //   keybinds - gate for the Ctrl+Alt+arrow navigation helper
 //   gestures - gate for the three-finger swipe navigation helper
+//   clickNavigation - allow left-clicking a box to focus that workspace
 BarWidget {
   id: root
   moduleName: "io.github.kambiz.workspaces-pager"
@@ -30,6 +31,7 @@ BarWidget {
     return v >= 1 && v <= 20 ? v : 8
   }
   readonly property int columns: Math.ceil(desktops / rows)
+  readonly property bool clickNavigation: settings ? settings.clickNavigation !== false : true
 
   // Resolve the monitor that hosts this bar widget. On a multi-monitor setup
   // each bar owns its own pager state; fall back to focus only while the
@@ -131,7 +133,7 @@ BarWidget {
       acceptedButtons: Qt.LeftButton | Qt.RightButton
       onClicked: function(mouse) {
         if (mouse.button === Qt.RightButton) root.togglePanel()
-        else root.focusWorkspace(parent.desktopId)
+        else if (root.clickNavigation) root.focusWorkspace(parent.desktopId)
       }
     }
   }

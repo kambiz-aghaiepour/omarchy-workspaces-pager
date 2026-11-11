@@ -8,11 +8,12 @@ control panel for the layout and the navigation inputs.
   columns per row follow as `ceil(workspaces / rows)` — 8 workspaces in 2 rows
   render 4 + 4, 5 workspaces render 3 + 2.
 - **Control panel.** Right-click the widget: two-row toggle, workspace-count
-  spinner, and toggles for the keyboard and swipe navigation.
+  spinner, and toggles for keyboard, swipe, and left-click navigation.
 - **Migration.** Lowering the workspace count moves windows from removed
   workspaces to the last remaining one and refocuses if needed.
 - **Navigation.** `Ctrl+Alt+<arrow>` and three-finger swipes walk the grid
   with hard stops at the edges (no wraparound); swipes follow the content.
+  Left-clicking a box focuses that workspace when the option is enabled.
   Each input has its own toggle in the panel.
 
 Omarchy's per-monitor workspace bands are respected: each bar resolves its own
@@ -76,12 +77,13 @@ geometry, remove its binds/gestures in favor of these.
 Stored on the widget's bar entry (`~/.config/omarchy/shell.json`), editable
 from the panel:
 
-| Key        | Values       | Meaning                                    |
-| ---------- | ------------ | ------------------------------------------ |
-| `rows`     | `1` or `2`   | Pager rows                                  |
-| `desktops` | `1`–`20`     | Workspaces the pager shows                  |
-| `keybinds` | boolean      | Gate for `--via keybind` helper calls       |
-| `gestures` | boolean      | Gate for `--via gesture` helper calls       |
+| Key               | Values     | Meaning                                     |
+| ----------------- | ---------- | ------------------------------------------- |
+| `rows`            | `1` or `2` | Pager rows                                   |
+| `desktops`        | `1`–`20`   | Workspaces the pager shows                   |
+| `keybinds`        | boolean    | Gate for `--via keybind` helper calls        |
+| `gestures`        | boolean    | Gate for `--via gesture` helper calls        |
+| `clickNavigation` | boolean    | Left-click a box to focus its workspace      |
 
 Lowering `desktops` runs `scripts/pager-migrate`: windows on workspaces above
 the new count move to workspace `count`, and the focused view follows if it

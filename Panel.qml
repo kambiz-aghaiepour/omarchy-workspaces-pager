@@ -27,6 +27,7 @@ Panel {
   }
   readonly property bool keybinds: cfg.keybinds !== false
   readonly property bool gestures: cfg.gestures !== false
+  readonly property bool clickNavigation: cfg.clickNavigation !== false
 
   readonly property color fg: bar ? bar.barForeground : Commons.Color.foreground
   readonly property color accent: Commons.Color.accent
@@ -129,6 +130,14 @@ Panel {
           description: "Swipe across the grid (gestures snippet)"
           checked: root.gestures
           onClicked: root.save({ gestures: !root.gestures })
+        }
+
+        Toggle {
+          width: parent.width
+          label: "Allow left click to navigate to workspace"
+          description: "Click a workspace box to focus it"
+          checked: root.clickNavigation
+          onClicked: root.save({ clickNavigation: !root.clickNavigation })
         }
 
         NumberField {
