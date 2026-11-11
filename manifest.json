@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "io.github.kambiz.workspaces-pager",
   "name": "Workspaces Pager",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "author": "kambiz",
   "license": "MIT",
   "description": "Grid workspace pager with a control panel: 1-2 rows, live workspace count (lowering moves windows to the last remaining workspace), and toggles for Ctrl+Alt+arrow, three-finger-swipe, and left-click navigation.",
